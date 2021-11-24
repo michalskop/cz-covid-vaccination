@@ -11,6 +11,7 @@ import csv
 url = 'https://onemocneni-aktualne.mzcr.cz/api/v2/covid-19/ockovani-profese.csv'
 
 i = 0
+print(datetime.datetime.now(), i)
 with closing(requests.get(url, stream=True)) as r:
     f = (line.decode('utf-8') for line in r.iter_lines())
     reader = csv.reader(f, delimiter=',', quotechar='"')
@@ -20,6 +21,8 @@ with closing(requests.get(url, stream=True)) as r:
         else:
             data.loc[i] = row
         i += 1
+        if (i % 10000) == 0:
+            print(datetime.datetime.now(), i)
         # if i > 10:
         #     break
 
