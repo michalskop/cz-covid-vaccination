@@ -57,7 +57,6 @@ for i in range(0, nbytes // step + 1):
     #         data.loc[data.shape[0]] = row
     #         j += 1
 
-
     # if i > 5:
     #     break
 
