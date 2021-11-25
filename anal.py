@@ -17,9 +17,9 @@ nbytes = int(r0.headers['Content-Length'])
 step = 10000000
 
 
-def create_range(i):
+def create_range(i, left_buffer=1000, right_buffer=1000):
     """Creates Range header."""
-    return f'bytes={i * step}-{(i + 1) * step + 1000}'
+    return f'bytes={i * step - left_buffer}-{(i + 1) * step + right_buffer}'
 
 # first row is header
 r = requests.get(url, headers={'Range': 'bytes=3-1000'})    # first bytes are something else
@@ -31,29 +31,33 @@ for row in dr:
 data = pd.DataFrame(columns=header)
 
 # get all data
+# for i in range(0, nbytes // step + 1):
 for i in range(0, nbytes // step + 1):
     print(datetime.datetime.now(), i)
     r = requests.get(url, headers={"Range": create_range(i)})
     print(datetime.datetime.now(), i, 'downloaded')
     # pd.read_csv(io.StringIO(r.text), header=None, skiprows=1, error_bad_lines=False, engine="python").to_csv('data_' + str(i) + '.csv', index=False)
-    t = pd.read_csv(io.StringIO(r.text), header=None, skiprows=1, error_bad_lines=False, engine="python")
-    # t = pd.read_csv('data_' + str(i) + '.csv', header=None).reset_index(drop=True)
-    t.columns = header
-    data = data.append(t.iloc[1:])
+    try:
+        t = pd.read_csv(io.StringIO(r.text), header=None, skiprows=1, error_bad_lines=False, engine="python", encoding='utf-8')
+        # t = pd.read_csv('data_' + str(i) + '.csv', header=None).reset_index(drop=True)
+        t.columns = header
+        data = data.append(t.iloc[1:])
+    except:
+        r = requests.get(url, headers={"Range": create_range(i, 111, 1111)})
+        t = pd.read_csv(io.StringIO(r.text), header=None, skiprows=1, error_bad_lines=False, engine="python", encoding='utf-8')
+        # t = pd.read_csv('data_' + str(i) + '.csv', header=None).reset_index(drop=True)
+        t.columns = header
+        data = data.append(t.iloc[1:])
 
-
+    # j = data.shape[0]
     # buff = io.StringIO(r.text)
     # dr = csv.reader(buff)
     # for row in dr:
     #     if len(row[0]) == 36:
-    #         if row[0] not in ids:
-    #             try:
-    #                 data.loc[j] = row
-    #                 ids.append(row[0])
-    #                 j += 1
-    #             except:
-    #                 print(row)
-    #                 nothing = 1
+    #         data.loc[data.shape[0]] = row
+    #         j += 1
+
+
     # if i > 5:
     #     break
 
